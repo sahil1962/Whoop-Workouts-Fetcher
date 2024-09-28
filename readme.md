@@ -5,13 +5,13 @@
 1. Install the required Python packages:
 
     ```bash
-    pip install -r requirements.txt
+    pip install -r requirement.txt
     ```
 
     If you encounter a permission error, try:
 
     ```bash
-    pip install --user -r requirements.txt
+    pip install --user -r requirement.txt
     ```
 
 2. Run the script to start the application:

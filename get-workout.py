@@ -6,13 +6,18 @@ import json
 from whoop import WhoopClient
 import datetime
 import plotly.graph_objs as go
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Initialize Dash app
 app = dash.Dash(__name__)
 
-# Username and password for Whoop API
-USERNAME = "harobrien@gmail.com"
-PASSWORD = "Incorrect1"
+# Fetch Username and Password for Whoop API from environment variables
+USERNAME = os.getenv("WHOOP_USERNAME")
+PASSWORD = os.getenv("WHOOP_PASSWORD")
 
 # App Layout
 app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'margin': '20px'}, children=[
