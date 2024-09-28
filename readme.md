@@ -23,9 +23,9 @@
 3. Open your web browser and go to:
 
     ```
-    http://127.0.0.1:8050/
+    http://127.0.0.1:8050/ 
     ```
 
 ## Additional Notes
 
-- Make sure you have Python installed before running the commands.
+- Make sure you have Python installed before running the commands. .
