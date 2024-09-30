@@ -8,6 +8,7 @@ import datetime
 import plotly.graph_objs as go
 import os
 from dotenv import load_dotenv
+from waitress import serve
 
 # Load environment variables from .env file
 load_dotenv()
@@ -193,5 +194,4 @@ def fetch_workouts(n_clicks, start_date):
 
 # Run the Dash app with Waitress if this script is run directly
 if __name__ == "__main__":
-    from waitress import serve
     serve(app.server, host="0.0.0.0", port=int(os.environ.get("PORT", 8050)))
