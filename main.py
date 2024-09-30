@@ -19,11 +19,6 @@ app = dash.Dash(__name__)
 # Expose the server
 server = app.server  # This is important for waitress
 
-# Health Check Route
-@server.route('/healthz')
-def health_check():
-    return "Healthy", 200
-
 # Fetch Username and Password for Whoop API from environment variables
 USERNAME = os.getenv("WHOOP_USERNAME")
 PASSWORD = os.getenv("WHOOP_PASSWORD")
