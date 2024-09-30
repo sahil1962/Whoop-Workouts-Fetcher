@@ -193,5 +193,4 @@ def fetch_workouts(n_clicks, start_date):
     return f"Found {len(workouts)} workouts. Data saved to workouts.json", workout_data, columns, figure
 
 # Run the Dash app with Waitress if this script is run directly
-if __name__ == "__main__":
-    serve(app.server, host="0.0.0.0", port=int(os.environ.get("PORT", 8050)))
+serve(app.server, host="0.0.0.0", port=int(os.environ.get("PORT", 8050)))
