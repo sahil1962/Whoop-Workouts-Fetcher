@@ -15,6 +15,9 @@ load_dotenv()
 # Initialize Dash app
 app = dash.Dash(__name__)
 
+# Expose the server
+server = app.server  # This is important for gunicorn
+
 # Fetch Username and Password for Whoop API from environment variables
 USERNAME = os.getenv("WHOOP_USERNAME")
 PASSWORD = os.getenv("WHOOP_PASSWORD")
