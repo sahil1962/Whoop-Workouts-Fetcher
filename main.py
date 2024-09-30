@@ -16,7 +16,7 @@ load_dotenv()
 app = dash.Dash(__name__)
 
 # Expose the server
-server = app.server  # This is important for gunicorn
+server = app.server  # This is important for waitress
 
 # Fetch Username and Password for Whoop API from environment variables
 USERNAME = os.getenv("WHOOP_USERNAME")
@@ -25,12 +25,12 @@ PASSWORD = os.getenv("WHOOP_PASSWORD")
 # App Layout
 app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'margin': '20px'}, children=[
     html.H1("Whoop Workouts Fetcher", style={'textAlign': 'center', 'color': '#4A90E2'}),
-    
+
     # Input for Start Date
     html.Div([
         dcc.Input(id="start-date", type="text", placeholder="YYYY-MM-DD", value="2022-10-12",
                    style={'padding': '10px', 'width': '300px', 'marginRight': '10px'}),
-        
+
         # Submit button
         html.Button(id="submit-btn", children="Fetch Workouts", style={
             'padding': '10px 20px',
@@ -41,7 +41,7 @@ app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'margin': '20px'
             'cursor': 'pointer'
         }),
     ], style={'textAlign': 'center', 'marginBottom': '20px'}),
-    
+
     # Loading indicator
     dcc.Loading(
         id="loading",
@@ -191,6 +191,7 @@ def fetch_workouts(n_clicks, start_date):
     # Return the number of workouts found, the data, columns for the table, and the strain chart
     return f"Found {len(workouts)} workouts. Data saved to workouts.json", workout_data, columns, figure
 
-# Run the Dash app
+# Run the Dash app with Waitress if this script is run directly
 if __name__ == "__main__":
-    app.run_server(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 8050)))
+    from waitress import serve
+    serve(app.server, host="0.0.0.0", port=int(os.environ.get("PORT", 8050)))

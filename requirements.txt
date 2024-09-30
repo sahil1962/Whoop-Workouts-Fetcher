@@ -3,4 +3,4 @@ requests>=2.31.0
 dash>=2.0.0
 whoop
 python-dotenv
-gunicorn
+waitress
