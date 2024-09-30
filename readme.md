@@ -28,4 +28,9 @@
 
 ## Additional Notes
 
-- Make sure you have Python installed before running the commands. .
+- Make sure you have Python installed before running the commands.
+
+
+## Result
+![image](https://github.com/user-attachments/assets/5d633f5e-e089-4c90-9d07-42eb32230cd8)
+
