@@ -19,6 +19,11 @@ app = dash.Dash(__name__)
 # Expose the server
 server = app.server  # This is important for waitress
 
+# Health Check Route
+@server.route('/healthz')
+def health_check():
+    return "Healthy", 200
+
 # Fetch Username and Password for Whoop API from environment variables
 USERNAME = os.getenv("WHOOP_USERNAME")
 PASSWORD = os.getenv("WHOOP_PASSWORD")
@@ -26,12 +31,12 @@ PASSWORD = os.getenv("WHOOP_PASSWORD")
 # App Layout
 app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'margin': '20px'}, children=[
     html.H1("Whoop Workouts Fetcher", style={'textAlign': 'center', 'color': '#4A90E2'}),
-
+    
     # Input for Start Date
     html.Div([
         dcc.Input(id="start-date", type="text", placeholder="YYYY-MM-DD", value="2022-10-12",
                    style={'padding': '10px', 'width': '300px', 'marginRight': '10px'}),
-
+        
         # Submit button
         html.Button(id="submit-btn", children="Fetch Workouts", style={
             'padding': '10px 20px',
@@ -42,7 +47,7 @@ app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'margin': '20px'
             'cursor': 'pointer'
         }),
     ], style={'textAlign': 'center', 'marginBottom': '20px'}),
-
+    
     # Loading indicator
     dcc.Loading(
         id="loading",
