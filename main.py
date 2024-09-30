@@ -14,78 +14,111 @@ from waitress import serve
 load_dotenv()
 
 # Initialize Dash app
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1.0"}])
 
 # Expose the server
-server = app.server  # This is important for waitress
+server = app.server
 
 # Fetch Username and Password for Whoop API from environment variables
 USERNAME = os.getenv("WHOOP_USERNAME")
 PASSWORD = os.getenv("WHOOP_PASSWORD")
 
 # App Layout
-app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'margin': '20px'}, children=[
-    html.H1("Whoop Workouts Fetcher", style={'textAlign': 'center', 'color': '#4A90E2'}),
-    
-    # Input for Start Date
-    html.Div([
-        dcc.Input(id="start-date", type="text", placeholder="YYYY-MM-DD", value="2022-10-12",
-                   style={'padding': '10px', 'width': '300px', 'marginRight': '10px'}),
-        
-        # Submit button
-        html.Button(id="submit-btn", children="Fetch Workouts", style={
-            'padding': '10px 20px',
-            'backgroundColor': '#4A90E2',
-            'color': 'white',
-            'border': 'none',
-            'borderRadius': '5px',
-            'cursor': 'pointer'
-        }),
-    ], style={'textAlign': 'center', 'marginBottom': '20px'}),
-    
-    # Loading indicator
-    dcc.Loading(
-        id="loading",
-        type="default",
-        children=[
-            # Output container for messages
-            html.Div(id="output-workouts", style={'textAlign': 'center', 'marginBottom': '20px'}),
-            # Data table to display fetched workouts
-            DataTable(
-                id="workouts-table",
-                columns=[],
-                data=[],
-                style_table={
-                    'overflowX': 'auto',
-                    'overflowY': 'auto',
-                    'height': '400px',
-                    'border': 'thin lightgrey solid',
-                    'borderRadius': '5px',
-                    'boxShadow': '0 2px 5px rgba(0, 0, 0, 0.1)',
-                },
-                style_cell={
-                    'textAlign': 'left',
-                    'padding': '10px',
-                    'border': '1px solid lightgrey',
-                },
-                style_header={
-                    'backgroundColor': '#4A90E2',
-                    'color': 'white',
-                    'fontWeight': 'bold',
-                },
-                style_data_conditional=[
-                    {
-                        'if': {'row_index': 'odd'},
-                        'backgroundColor': '#f9f9f9',
-                    },
-                ],
-                page_size=10,  # Set the number of rows per page
-                style_as_list_view=True,
+app.layout = html.Div(style={'display': 'flex', 'flexDirection': 'column', 'minHeight': '100vh', 'backgroundColor': '#f7f7f7'}, children=[
+
+    # Header Section
+    html.Div(style={
+        'backgroundColor': '#2c3e50', 'padding': '10px 20px', 'color': 'white', 
+        'textAlign': 'center', 'fontSize': '24px', 'fontWeight': 'bold'}, 
+        children="Whoop Dashboard"),
+
+    # Content Wrapper
+    html.Div(style={'display': 'flex', 'flexDirection': 'row', 'flex': 1}, children=[
+
+        # Sidebar (Collapsible for mobile)
+        html.Div(id="sidebar", style={
+            'width': '250px', 'backgroundColor': '#34495e', 'padding': '20px', 'color': 'white', 
+            'display': 'flex', 'flexDirection': 'column', 'justifyContent': 'start', 'height': '100%', 'flexShrink': 0
+        }, children=[
+            html.H2("Menu", style={'color': 'white', 'textAlign': 'center', 'marginBottom': '20px'}),
+            
+            # Time range buttons
+            html.Button('7 Days', id='7-days-btn', n_clicks=0, className='sidebar-button'),
+            html.Button('14 Days', id='14-days-btn', n_clicks=0, className='sidebar-button'),
+            html.Button('30 Days', id='30-days-btn', n_clicks=0, className='sidebar-button'),
+            html.Button('3 Months', id='3-months-btn', n_clicks=0, className='sidebar-button'),
+            html.Button('6 Months', id='6-months-btn', n_clicks=0, className='sidebar-button'),
+            html.Button('All Time', id='all-time-btn', n_clicks=0, className='sidebar-button'),
+            
+            # Date range picker
+            html.Label('Custom Date Range:', style={'marginTop': '20px'}),
+            dcc.DatePickerRange(
+                id='date-picker-range',
+                min_date_allowed=datetime.date(2020, 1, 1),
+                max_date_allowed=datetime.date.today(),
+                start_date=datetime.date(2022, 1, 1),
+                end_date=datetime.date.today(),
+                style={'marginBottom': '20px'}
             ),
-            # Graph to show strain score over time
-            dcc.Graph(id="strain-chart")
-        ],
-    ),
+            
+            # Submit button
+            html.Button(id="submit-btn", children="Fetch Workouts", style={
+                'padding': '10px 20px',
+                'backgroundColor': '#e74c3c',
+                'color': 'white',
+                'border': 'none',
+                'borderRadius': '5px',
+                'cursor': 'pointer',
+                'width': '100%'
+            }),
+        ]),
+
+        # Main Content Area
+        html.Div(style={'flexGrow': 1, 'padding': '20px', 'overflowY': 'scroll'}, children=[
+            html.H1("Workout Data", style={'textAlign': 'center', 'color': '#34495e', 'marginBottom': '30px'}),
+
+            dcc.Loading(
+                id="loading",
+                type="default",
+                children=[
+                    html.Div(id="output-workouts", style={'textAlign': 'center', 'marginBottom': '20px'}),
+                    DataTable(
+                        id="workouts-table",
+                        columns=[],
+                        data=[],
+                        style_table={
+                            'overflowX': 'auto',
+                            'overflowY': 'auto',
+                            'height': '300px',
+                            'border': 'thin lightgrey solid',
+                            'borderRadius': '5px',
+                            'boxShadow': '0 2px 5px rgba(0, 0, 0, 0.1)',
+                            'marginBottom': '20px',
+                        },
+                        style_cell={
+                            'textAlign': 'left',
+                            'padding': '10px',
+                            'border': '1px solid lightgrey',
+                        },
+                        style_header={
+                            'backgroundColor': '#34495e',
+                            'color': 'white',
+                            'fontWeight': 'bold',
+                        },
+                        style_data_conditional=[
+                            {
+                                'if': {'row_index': 'odd'},
+                                'backgroundColor': '#f9f9f9',
+                            },
+                        ],
+                        page_size=10,
+                        style_as_list_view=True,
+                    ),
+                    dcc.Graph(id="strain-chart", style={'border': 'thin lightgrey solid', 'borderRadius': '5px'}),
+                ]
+            ),
+        ]),
+    ]),
 ])
 
 # Callback to fetch workouts based on start date and prepare data for the table and chart
@@ -94,23 +127,47 @@ app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'margin': '20px'
     Output("workouts-table", "data"),
     Output("workouts-table", "columns"),
     Output("strain-chart", "figure"),
+    Input("7-days-btn", "n_clicks"),
+    Input("14-days-btn", "n_clicks"),
+    Input("30-days-btn", "n_clicks"),
+    Input("3-months-btn", "n_clicks"),
+    Input("6-months-btn", "n_clicks"),
+    Input("all-time-btn", "n_clicks"),
     Input("submit-btn", "n_clicks"),
-    State("start-date", "value")
+    State("date-picker-range", "start_date"),
+    State("date-picker-range", "end_date"),
 )
-def fetch_workouts(n_clicks, start_date):
-    if n_clicks is None:
+def fetch_workouts(n7, n14, n30, n3m, n6m, n_all, n_custom, start_date, end_date):
+    # Determine which button was clicked
+    ctx = dash.callback_context
+
+    if not ctx.triggered:
         return "", [], [], go.Figure()
 
-    # Ensure start date is properly formatted
-    try:
-        start_date_parsed = datetime.datetime.strptime(start_date, "%Y-%m-%d").strftime("%Y-%m-%d 23:59:59.999999")
-    except ValueError:
-        return "Invalid date format. Please enter a date in YYYY-MM-DD format.", [], [], go.Figure()
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    # Fetch workouts from Whoop API
+    # Calculate the start date based on the button clicked
+    if button_id == '7-days-btn':
+        start_date = (datetime.date.today() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+    elif button_id == '14-days-btn':
+        start_date = (datetime.date.today() - datetime.timedelta(days=14)).strftime("%Y-%m-%d")
+    elif button_id == '30-days-btn':
+        start_date = (datetime.date.today() - datetime.timedelta(days=30)).strftime("%Y-%m-%d")
+    elif button_id == '3-months-btn':
+        start_date = (datetime.date.today() - datetime.timedelta(days=90)).strftime("%Y-%m-%d")
+    elif button_id == '6-months-btn':
+        start_date = (datetime.date.today() - datetime.timedelta(days=180)).strftime("%Y-%m-%d")
+    elif button_id == 'all-time-btn':
+        start_date = "2020-01-01"
+    elif button_id == 'submit-btn':
+        # Use the custom date range from the DatePicker
+        start_date = start_date
+        end_date = end_date
+
+    # Fetch workouts and create table and chart (same logic as before)
     try:
         with WhoopClient(USERNAME, PASSWORD) as client:
-            workouts = client.get_workout_collection(start_date=start_date_parsed)
+            workouts = client.get_workout_collection(start_date=start_date)
     except Exception as e:
         return f"Error fetching workouts: {str(e)}", [], [], go.Figure()
 
@@ -151,46 +208,18 @@ def fetch_workouts(n_clicks, start_date):
             "Zone Four Duration (ms)": score["zone_duration"].get("zone_four_milli") if score else None,
             "Zone Five Duration (ms)": score["zone_duration"].get("zone_five_milli") if score else None,
         })
-        if strain is not None:
-            strain_scores.append(strain)
-            dates.append(datetime.datetime.fromisoformat(workout.get("start")[:-1]))  # Convert to datetime
+        strain_scores.append(strain)
+        dates.append(workout.get("start"))
 
-    # Define columns for the DataTable
-    columns = [
-        {"name": "ID", "id": "ID"},
-        {"name": "User ID", "id": "User ID"},
-        {"name": "Created At", "id": "Created At"},
-        {"name": "Updated At", "id": "Updated At"},
-        {"name": "Start", "id": "Start"},
-        {"name": "End", "id": "End"},
-        {"name": "Timezone Offset", "id": "Timezone Offset"},
-        {"name": "Sport ID", "id": "Sport ID"},
-        {"name": "Score State", "id": "Score State"},
-        {"name": "Strain", "id": "Strain"},
-        {"name": "Average Heart Rate", "id": "Average Heart Rate"},
-        {"name": "Max Heart Rate", "id": "Max Heart Rate"},
-        {"name": "Kilojoules", "id": "Kilojoules"},
-        {"name": "Percent Recorded", "id": "Percent Recorded"},
-        {"name": "Distance (meters)", "id": "Distance (meters)"},
-        {"name": "Altitude Gain (meters)", "id": "Altitude Gain (meters)"},
-        {"name": "Altitude Change (meters)", "id": "Altitude Change (meters)"},
-        {"name": "Zone Zero Duration (ms)", "id": "Zone Zero Duration (ms)"},
-        {"name": "Zone One Duration (ms)", "id": "Zone One Duration (ms)"},
-        {"name": "Zone Two Duration (ms)", "id": "Zone Two Duration (ms)"},
-        {"name": "Zone Three Duration (ms)", "id": "Zone Three Duration (ms)"},
-        {"name": "Zone Four Duration (ms)", "id": "Zone Four Duration (ms)"},
-        {"name": "Zone Five Duration (ms)", "id": "Zone Five Duration (ms)"},
-    ]
+    columns = [{"name": i, "id": i} for i in workout_data[0].keys()] if workout_data else []
+    
+    # Prepare strain chart
+    strain_chart = go.Figure(
+        data=[go.Scatter(x=dates, y=strain_scores, mode='lines+markers')],
+        layout=go.Layout(title="Strain Scores Over Time", xaxis={'title': 'Date'}, yaxis={'title': 'Strain Score'})
+    )
 
-    # Create a figure for the strain chart
-    figure = go.Figure()
-    figure.add_trace(go.Scatter(x=dates, y=strain_scores, mode='lines+markers', name='Strain Score'))
-    figure.update_layout(title='Strain Score Over Time', xaxis_title='Date', yaxis_title='Strain Score',
-                         xaxis=dict(showgrid=True, gridcolor='LightGray'),
-                         yaxis=dict(showgrid=True, gridcolor='LightGray'))
-
-    # Return the number of workouts found, the data, columns for the table, and the strain chart
-    return f"Found {len(workouts)} workouts. Data saved to workouts.json", workout_data, columns, figure
+    return f"Fetched {len(workouts)} workouts.", workout_data, columns, strain_chart
 
 # Run the Dash app with Waitress if this script is run directly
 serve(app.server, host="0.0.0.0", port=int(os.environ.get("PORT", 8050)))
