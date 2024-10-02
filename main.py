@@ -167,7 +167,7 @@ def fetch_workouts(n7, n14, n30, n3m, n6m, n_all, n_custom, start_date, end_date
     # Fetch workouts and create table and chart (same logic as before)
     try:
         with WhoopClient(USERNAME, PASSWORD) as client:
-            workouts = client.get_workout_collection(start_date=start_date)
+            workouts = client.get_cycle_collection(start_date=start_date)
     except Exception as e:
         return f"Error fetching workouts: {str(e)}", [], [], go.Figure()
 
@@ -191,23 +191,12 @@ def fetch_workouts(n7, n14, n30, n3m, n6m, n_all, n_custom, start_date, end_date
             "Start": workout.get("start"),
             "End": workout.get("end"),
             "Timezone Offset": workout.get("timezone_offset"),
-            "Sport ID": workout.get("sport_id"),
             "Score State": workout.get("score_state"),
             "Strain": strain,
             "Average Heart Rate": score.get("average_heart_rate") if score else None,
             "Max Heart Rate": score.get("max_heart_rate") if score else None,
             "Kilojoules": score.get("kilojoule") if score else None,
-            "Percent Recorded": score.get("percent_recorded") if score else None,
-            "Distance (meters)": score.get("distance_meter") if score else None,
-            "Altitude Gain (meters)": score.get("altitude_gain_meter") if score else None,
-            "Altitude Change (meters)": score.get("altitude_change_meter") if score else None,
-            "Zone Zero Duration (ms)": score["zone_duration"].get("zone_zero_milli") if score else None,
-            "Zone One Duration (ms)": score["zone_duration"].get("zone_one_milli") if score else None,
-            "Zone Two Duration (ms)": score["zone_duration"].get("zone_two_milli") if score else None,
-            "Zone Three Duration (ms)": score["zone_duration"].get("zone_three_milli") if score else None,
-            "Zone Four Duration (ms)": score["zone_duration"].get("zone_four_milli") if score else None,
-            "Zone Five Duration (ms)": score["zone_duration"].get("zone_five_milli") if score else None,
-        })
+    })
         strain_scores.append(strain)
         dates.append(workout.get("start"))
 
